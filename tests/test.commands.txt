@@ -1,0 +1,3 @@
+Test command for validator.gp with coverage:
+    go test -v ./tests/... -coverpkg=web-app/internal/validator
+
