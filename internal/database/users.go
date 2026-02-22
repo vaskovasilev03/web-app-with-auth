@@ -68,3 +68,29 @@ func (db *DB) GetUserByID(userID int) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func (db *DB) UpdateUser(userID int, firstName, lastName string) error {
+	query := "UPDATE users SET first_name = ?, last_name = ? WHERE id = ?"
+	_, err := db.Exec(query, firstName, lastName, userID)
+	return err
+}
+
+func (db *DB) VerifyPassword(userID int, password string) error {
+	var hash string
+	query := "SELECT password_hash FROM users WHERE id = ?"
+	err := db.QueryRow(query, userID).Scan(&hash)
+	if err != nil {
+		return err
+	}
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+}
+
+func (db *DB) UpdatePassword(userID int, password string) error {
+	hashedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	query := "UPDATE users SET password_hash = ? WHERE id = ?"
+	_, err = db.Exec(query, string(hashedPass), userID)
+	return err
+}
