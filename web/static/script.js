@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById('register-form')) {
         loadCaptcha();
     }
+    if (window.location.pathname === '/profile') {
+        loadProfileData();
+    }
     fetch("/api/session", { headers: { "Accept": "application/json" } })
         .then(response => response.json())
         .then(data => {
@@ -48,6 +51,115 @@ if (loginForm) {
         } catch (err) {
             errorMsg.innerText = "Connection failed. Is the server running?";
             errorMsg.style.display = 'block';
+        }
+    });
+}
+
+function loadProfileData() {
+    fetch("/api/session")
+        .then(res => res.json())
+        .then(data => {
+            if (data.authenticated) {
+                document.getElementById('display-firstname').innerText = data.firstName;
+                document.getElementById('display-lastname').innerText = data.lastName;
+                document.getElementById('edit-firstname').value = data.firstName;
+                document.getElementById('edit-lastname').value = data.lastName;
+            } else {
+                window.location.href = '/login';
+            }
+        });
+}
+
+function toggleNameEdit() {
+    const view = document.getElementById('profile-view');
+    const form = document.getElementById('profile-edit-form');
+    if (view.style.display === 'none') {
+        view.style.display = 'block';
+        form.style.display = 'none';
+    } else {
+        view.style.display = 'none';
+        form.style.display = 'block';
+    }
+}
+
+const profileEditForm = document.getElementById('profile-edit-form');
+if (profileEditForm) {
+    profileEditForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const firstName = document.getElementById('edit-firstname').value;
+        const lastName = document.getElementById('edit-lastname').value;
+        const msg = document.getElementById('profile-message');
+
+        try {
+            const res = await fetch('/profile/updateName', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ first_name: firstName, last_name: lastName })
+            });
+            if (res.ok) {
+                msg.innerText = "Name updated successfully!";
+                msg.style.color = "green";
+                msg.style.display = "block";
+                loadProfileData();
+                toggleNameEdit();
+            } else {
+                msg.innerText = await res.text();
+                msg.style.color = "red";
+                msg.style.display = "block";
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+}
+
+function togglePasswordEdit() {
+    const btn = document.getElementById('change-password-btn');
+    const form = document.getElementById('password-edit-form');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        btn.style.display = 'none';
+    } else {
+        form.style.display = 'none';
+        btn.style.display = 'block';
+        document.getElementById('password-edit-form').reset();
+    }
+}
+
+const passwordEditForm = document.getElementById('password-edit-form');
+if (passwordEditForm) {
+    passwordEditForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const repeatPassword = document.getElementById('repeat-password').value;
+        const msg = document.getElementById('profile-message');
+
+        if (newPassword !== repeatPassword) {
+            msg.innerText = "New passwords do not match";
+            msg.style.color = "red";
+            msg.style.display = "block";
+            return;
+        }
+
+        try {
+            const res = await fetch('/profile/updatePassword', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+            });
+            if (res.ok) {
+                msg.innerText = "Password updated successfully!";
+                msg.style.color = "green";
+                msg.style.display = "block";
+                togglePasswordEdit();
+            } else {
+                msg.innerText = await res.text();
+                msg.style.color = "red";
+                msg.style.display = "block";
+            }
+        } catch (err) {
+            console.error(err);
         }
     });
 }

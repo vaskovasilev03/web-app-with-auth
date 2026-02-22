@@ -196,3 +196,80 @@ func (app *App) handleLogout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, "Logged out")
 }
+
+func (app *App) handleUpdateName(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, ok := r.Context().Value("userID").(int)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var input struct {
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	if !validator.IsValidName(input.FirstName) || !validator.IsValidName(input.LastName) {
+		http.Error(w, "Invalid name format", http.StatusBadRequest)
+		return
+	}
+
+	if err := app.DB.UpdateUser(userID, input.FirstName, input.LastName); err != nil {
+		log.Printf("DEBUG: UpdateUser Error: %v", err)
+		http.Error(w, "Failed to update profile", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Profile updated successfully"})
+}
+
+func (app *App) handleUpdatePassword(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID, ok := r.Context().Value("userID").(int)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var input struct {
+		CurrentPassword string `json:"current_password"`
+		NewPassword     string `json:"new_password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	if !validator.IsValidPassword(input.NewPassword) {
+		http.Error(w, "Invalid password format", http.StatusBadRequest)
+		return
+	}
+
+	if err := app.DB.VerifyPassword(userID, input.CurrentPassword); err != nil {
+		http.Error(w, "Incorrect current password", http.StatusUnauthorized)
+		return
+	}
+
+	if err := app.DB.UpdatePassword(userID, input.NewPassword); err != nil {
+		log.Printf("DEBUG: UpdatePassword Error: %v", err)
+		http.Error(w, "Failed to update password", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Password updated successfully"})
+}

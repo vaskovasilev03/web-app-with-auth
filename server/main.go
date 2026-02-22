@@ -72,7 +72,12 @@ func main() {
 	mux.HandleFunc("POST /register", app.handleRegister)
 	mux.HandleFunc("POST /login", app.handleLogin)
 	mux.HandleFunc("POST /logout", app.handleLogout)
-	//mux.Handle("GET /profile", app.SessionLoader(app.RequireAuth(http.HandlerFunc(app.ProfileHandler))))
+
+	mux.Handle("GET /profile", app.SessionLoader(app.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./web/profile.html")
+	}))))
+	mux.Handle("PUT /profile/updateName", app.SessionLoader(app.RequireAuth(http.HandlerFunc(app.handleUpdateName))))
+	mux.Handle("PUT /profile/updatePassword", app.SessionLoader(app.RequireAuth(http.HandlerFunc(app.handleUpdatePassword))))
 
 	log.Printf("Server is running on port %s", port)
 	http.ListenAndServe(":"+port, mux)
