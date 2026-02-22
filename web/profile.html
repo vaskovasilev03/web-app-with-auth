@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav id="navbar" style="display: flex; justify-content: space-between; align-items: center;">
+        <a href="/">Home</a>
+        <div id="user-actions">
+             <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="login-container">
+        <h1>User Profile</h1>
+        
+        <div id="profile-view">
+            <div class="input-group">
+                <label>First Name:</label>
+                <span id="display-firstname">Loading...</span>
+            </div>
+            <div class="input-group">
+                <label>Last Name:</label>
+                <span id="display-lastname">Loading...</span>
+                <i class="fas fa-pencil-alt" style="cursor: pointer; margin-left: 10px; color: #555;" onclick="toggleNameEdit()" title="Edit Name"></i>
+            </div>
+        </div>
+
+        <form id="profile-edit-form" style="display: none;">
+            <div class="input-group">
+                <label for="edit-firstname">First Name:</label>
+                <input type="text" id="edit-firstname">
+            </div>
+            <div class="input-group">
+                <label for="edit-lastname">Last Name:</label>
+                <input type="text" id="edit-lastname">
+            </div>
+            <button type="submit">Update Name</button>
+            <button type="button" onclick="toggleNameEdit()" style="background-color: #ccc;">Cancel</button>
+        </form>
+
+        <hr style="margin: 20px 0;">
+
+        <div id="password-section">
+            <button id="change-password-btn" onclick="togglePasswordEdit()">Change Password</button>
+        </div>
+
+        <form id="password-edit-form" style="display: none;">
+            <h3>Change Password</h3>
+            <div class="input-group">
+                <label for="current-password">Current Password:</label>
+                <input type="password" id="current-password" required>
+            </div>
+            <div class="input-group">
+                <label for="new-password">New Password:</label>
+                <input type="password" id="new-password" required>
+            </div>
+            <div class="input-group">
+                <label for="repeat-password">Repeat New Password:</label>
+                <input type="password" id="repeat-password" required>
+            </div>
+            <button type="submit">Update Password</button>
+            <button type="button" onclick="togglePasswordEdit()" style="background-color: #ccc;">Cancel</button>
+        </form>
+        
+        <p id="profile-message" style="display: none; margin-top: 10px;"></p>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
