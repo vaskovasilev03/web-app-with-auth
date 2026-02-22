@@ -34,3 +34,37 @@ func (db *DB) EmailExists(email string) (bool, error) {
 	}
 	return exists, nil
 }
+
+func (db *DB) Authenticate(email, password string) (int, error) {
+	var id int
+	var hashedPassword string
+
+	query := "SELECT id, password_hash FROM users WHERE email = ?"
+	err := db.QueryRow(query, email).Scan(&id, &hashedPassword)
+	if err != nil {
+		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1146 {
+			return 0, fmt.Errorf("invalid credentials")
+		}
+		return 0, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return 0, fmt.Errorf("invalid credentials") // Wrong password
+		}
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (db *DB) GetUserByID(userID int) (*models.User, error) {
+	var user models.User
+	query := "SELECT id, first_name, last_name, email, created_at FROM users WHERE id = ?"
+	err := db.QueryRow(query, userID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

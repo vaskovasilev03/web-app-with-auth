@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -94,4 +95,104 @@ func (app *App) handleRegister(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
+}
+
+func (app *App) handleLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var input struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := app.DB.Authenticate(input.Email, input.Password)
+	if err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	token, err := app.DB.GetValidSessionToken(userID)
+	expiresAt := time.Now().Add(24 * time.Hour)
+
+	if err == nil && token != "" {
+		if err := app.DB.UpdateSessionExpiry(token, expiresAt); err != nil {
+			log.Printf("DEBUG: UpdateSessionExpiry Error: %v", err)
+			http.Error(w, "Failed to update session", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		token, _ = utils.GenerateSecureToken(32)
+		session := &models.Session{
+			Token:     token,
+			UserID:    userID,
+			ExpiresAt: expiresAt,
+		}
+		if err := app.DB.CreateSession(session); err != nil {
+			log.Printf("DEBUG: CreateSession Error: %v", err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    token,
+		Path:     "/",
+		Expires:  expiresAt,
+		HttpOnly: true,
+	})
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "User logged in successfully"})
+}
+
+func (app *App) HomeHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./web/index.html")
+}
+
+func (app *App) SessionHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userID, ok := r.Context().Value("userID").(int)
+	if !ok {
+		json.NewEncoder(w).Encode(map[string]interface{}{"authenticated": false})
+		return
+	}
+
+	user, err := app.DB.GetUserByID(userID)
+	if err != nil {
+		json.NewEncoder(w).Encode(map[string]interface{}{"authenticated": false})
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"authenticated": true,
+		"firstName":     user.FirstName,
+		"lastName":      user.LastName,
+	})
+}
+
+func (app *App) handleLogout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "Logged out")
 }
