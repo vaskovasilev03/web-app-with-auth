@@ -11,8 +11,8 @@ type DB struct {
 	*sql.DB
 }
 
-func InitDB(dsn string) (*DB, error) {
-	db, err := sql.Open("mqsql", dsn)
+func InitDB(driver, dsn string) (*DB, error) {
+	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
