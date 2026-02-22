@@ -14,7 +14,7 @@ func (db *DB) CreateUser(user *models.User) error {
 		return err
 	}
 
-	query := "insert into users (first_name, last_name, email, password) values (?, ?, ?, ?)"
+	query := "insert into users (first_name, last_name, email, password_hash) values (?, ?, ?, ?)"
 	_, err = db.Exec(query, user.FirstName, user.LastName, user.Email, string(hashedPass))
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
