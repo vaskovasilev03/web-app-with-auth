@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"web-app/internal/api"
 	"web-app/internal/database"
@@ -43,9 +44,35 @@ func main() {
 		DB: customDB,
 	}
 
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := customDB.CleanupExpired(time.Now()); err != nil {
+				log.Printf("Error cleaning up expired rows: %v", err)
+			}
+		}
+	}()
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /register", app.handleRegister)
+	mux.HandleFunc("GET /", app.HomeHandler)
+	mux.Handle("GET /api/session", app.SessionLoader(http.HandlerFunc(app.SessionHandler)))
+
+	mux.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./web/register.html")
+	})
+	mux.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./web/login.html")
+	})
+
+	fileServer := http.FileServer(http.Dir("./web/static"))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", fileServer))
 	mux.HandleFunc("GET /captcha", api.HandleCaptcha(customDB))
+
+	mux.HandleFunc("POST /register", app.handleRegister)
+	mux.HandleFunc("POST /login", app.handleLogin)
+	mux.HandleFunc("POST /logout", app.handleLogout)
+	//mux.Handle("GET /profile", app.SessionLoader(app.RequireAuth(http.HandlerFunc(app.ProfileHandler))))
 
 	log.Printf("Server is running on port %s", port)
 	http.ListenAndServe(":"+port, mux)
