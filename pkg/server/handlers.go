@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	"web-app/internal/validator"
 )
 
-func (app *App) handleRegister(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -97,7 +97,7 @@ func (app *App) handleRegister(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
 }
 
-func (app *App) handleLogin(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -179,7 +179,7 @@ func (app *App) SessionHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (app *App) handleLogout(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -197,7 +197,7 @@ func (app *App) handleLogout(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Logged out")
 }
 
-func (app *App) handleUpdateName(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandleUpdateName(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -233,7 +233,7 @@ func (app *App) handleUpdateName(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "Profile updated successfully"})
 }
 
-func (app *App) handleUpdatePassword(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandleUpdatePassword(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return

@@ -9,7 +9,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func NewTestDB(t *testing.T) *DB {
@@ -70,13 +69,6 @@ func createTables(db *sql.DB, t *testing.T) {
 }
 
 func (db *DB) SeedUser(t *testing.T, user *models.User) int64 {
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		t.Fatalf("failed to hash password: %v", err)
-	}
-	user.Password = string(hashedPassword)
-
 	id, err := db.CreateUser(user)
 	if err != nil {
 		t.Fatalf("failed to seed user: %v", err)

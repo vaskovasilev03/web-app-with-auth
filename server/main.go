@@ -6,17 +6,13 @@ import (
 	"net/http"
 	"os"
 	"time"
-
 	"web-app/internal/api"
 	"web-app/internal/database"
+	"web-app/pkg/server"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
-
-type App struct {
-	DB *database.DB
-}
 
 func main() {
 	err := godotenv.Load()
@@ -31,7 +27,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-
 	defer db.Close()
 
 	if err := db.Ping(); err != nil {
@@ -40,9 +35,7 @@ func main() {
 	log.Println("Connected to database successfully.")
 
 	customDB := &database.DB{DB: db}
-	app := &App{
-		DB: customDB,
-	}
+	app := server.NewApp(customDB)
 
 	go func() {
 		ticker := time.NewTicker(1 * time.Hour)
@@ -69,17 +62,16 @@ func main() {
 	mux.Handle("GET /static/", http.StripPrefix("/static/", fileServer))
 	mux.HandleFunc("GET /captcha", api.HandleCaptcha(customDB))
 
-	mux.HandleFunc("POST /register", app.handleRegister)
-	mux.HandleFunc("POST /login", app.handleLogin)
-	mux.HandleFunc("POST /logout", app.handleLogout)
+	mux.HandleFunc("POST /register", app.HandleRegister)
+	mux.HandleFunc("POST /login", app.HandleLogin)
+	mux.HandleFunc("POST /logout", app.HandleLogout)
 
 	mux.Handle("GET /profile", app.SessionLoader(app.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./web/profile.html")
 	}))))
-	mux.Handle("PUT /profile/updateName", app.SessionLoader(app.RequireAuth(http.HandlerFunc(app.handleUpdateName))))
-	mux.Handle("PUT /profile/updatePassword", app.SessionLoader(app.RequireAuth(http.HandlerFunc(app.handleUpdatePassword))))
+	mux.Handle("PUT /profile/updateName", app.SessionLoader(app.RequireAuth(http.HandlerFunc(app.HandleUpdateName))))
+	mux.Handle("PUT /profile/updatePassword", app.SessionLoader(app.RequireAuth(http.HandlerFunc(app.HandleUpdatePassword))))
 
 	log.Printf("Server is running on port %s", port)
 	http.ListenAndServe(":"+port, mux)
-
 }

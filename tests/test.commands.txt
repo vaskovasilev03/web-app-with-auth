@@ -4,6 +4,9 @@ Test command for validator.go with coverage:
 Test command for internal database, utils with coverage:
     go test -v ./tests/internal_tests/... "-coverpkg=web-app/internal/utils,web-app/internal/database,web-api/internal/api" -coverprofile=coverage.out
 
+Test command for server with coverage:
+    go test -v ./tests/server_tests/... "-coverpkg=web-app/pkg/server..." -coverprofile=server_coverage.out
+
 Combined command:
     go test -v ./tests ./tests/internal_tests "-coverpkg=web-app/internal/..." -coverprofile=coverage.out
 
