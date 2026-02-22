@@ -58,9 +58,10 @@ func (app *App) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.DB.CreateUser(&data.User); err != nil {
+	userID, err := app.DB.CreateUser(&data.User)
+	if err != nil {
 		log.Printf("DEBUG: CreateUser Error: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Could not create user", http.StatusInternalServerError)
 		return
 	}
 
@@ -70,12 +71,25 @@ func (app *App) handleRegister(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to generate session token", http.StatusInternalServerError)
 		return
 	}
+
+	session := &models.Session{
+		Token:     sessionToken,
+		UserID:    int(userID),
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	if err := app.DB.CreateSession(session); err != nil {
+		log.Printf("DEBUG: CreateSession Error: %v", err)
+		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		return
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
-		Value:    sessionToken,
+		Value:    session.Token,
 		Path:     "/",
 		HttpOnly: true,
-		Expires:  time.Now().Add(24 * time.Hour),
+		Expires:  session.ExpiresAt,
 	})
 
 	w.WriteHeader(http.StatusCreated)

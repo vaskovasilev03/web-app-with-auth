@@ -8,21 +8,21 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (db *DB) CreateUser(user *models.User) error {
+func (db *DB) CreateUser(user *models.User) (int64, error) {
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	query := "insert into users (first_name, last_name, email, password_hash) values (?, ?, ?, ?)"
-	_, err = db.Exec(query, user.FirstName, user.LastName, user.Email, string(hashedPass))
+	result, err := db.Exec(query, user.FirstName, user.LastName, user.Email, string(hashedPass))
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			return fmt.Errorf("email already registered")
+			return 0, fmt.Errorf("email already registered")
 		}
-		return err
+		return 0, err
 	}
-	return nil
+	return result.LastInsertId()
 }
 
 func (db *DB) EmailExists(email string) (bool, error) {
