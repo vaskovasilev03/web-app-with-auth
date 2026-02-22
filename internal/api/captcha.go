@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	"time"
 	"web-app/internal/database"
 	"web-app/internal/utils"
 )
@@ -46,9 +45,8 @@ func HandleCaptcha(db *database.DB) http.HandlerFunc {
 			return
 		}
 
-		expiresAt := time.Now().Add(5 * time.Minute)
-		_, err = db.Exec("INSERT INTO captchas (id, answer, expires_at) VALUES (?, ?, ?)",
-			captchaID, fmt.Sprintf("%d", result), expiresAt)
+		_, err = db.Exec("INSERT INTO captchas (id, answer) VALUES (?, ?)",
+			captchaID, fmt.Sprintf("%d", result))
 		if err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			return
