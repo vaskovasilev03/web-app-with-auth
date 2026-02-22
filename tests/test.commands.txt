@@ -1,3 +1,11 @@
-Test command for validator.gp with coverage:
+Test command for validator.go with coverage:
     go test -v ./tests/... -coverpkg=web-app/internal/validator
 
+Test command for internal database, utils with coverage:
+    go test -v ./tests/internal_tests/... "-coverpkg=web-app/internal/utils,web-app/internal/database,web-api/internal/api" -coverprofile=coverage.out
+
+Combined command:
+    go test -v ./tests ./tests/internal_tests "-coverpkg=web-app/internal/..." -coverprofile=coverage.out
+
+Visual tool coverage:
+    go tool cover -html="coverage"
