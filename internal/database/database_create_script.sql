@@ -16,3 +16,9 @@ CREATE TABLE sessions (
     expires_at TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TABLE captchas (
+    id CHAR(36) PRIMARY KEY,
+    answer VARCHAR(10) NOT NULL,
+    expires_at DATETIME NOT NULL
+);
