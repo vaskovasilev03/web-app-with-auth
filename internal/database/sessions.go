@@ -5,7 +5,7 @@ import (
 )
 
 func (db *DB) CreateSession(session *models.Session) error {
-	query := "INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)"
+	query := "INSERT INTO sessions (session_token, user_id, expires_at) VALUES (?, ?, ?)"
 	_, err := db.Exec(query, session.Token, session.UserID, session.ExpiresAt)
 	return err
 }
