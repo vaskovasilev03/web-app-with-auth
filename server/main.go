@@ -58,12 +58,12 @@ func main() {
 	mux.HandleFunc("GET /", app.HomeHandler)
 	mux.Handle("GET /api/session", app.SessionLoader(http.HandlerFunc(app.SessionHandler)))
 
-	mux.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /register", app.SessionLoader(app.RedirectIfAuthenticated(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./web/register.html")
-	})
-	mux.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
+	}))))
+	mux.Handle("GET /login", app.SessionLoader(app.RedirectIfAuthenticated(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./web/login.html")
-	})
+	}))))
 
 	fileServer := http.FileServer(http.Dir("./web/static"))
 	mux.Handle("GET /static/", http.StripPrefix("/static/", fileServer))
