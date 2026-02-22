@@ -4,6 +4,6 @@ import "time"
 
 type Captcha struct {
 	ID        string    `json:"id"`
-	Code      string    `json:"code"`
+	Answer    string    `json:"answer"`
 	ExpiresAt time.Time `json:"-"`
 }
