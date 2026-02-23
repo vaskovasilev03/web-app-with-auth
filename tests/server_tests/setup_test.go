@@ -24,7 +24,10 @@ func TestMain(m *testing.M) {
 
 	serverDSN := os.Getenv("MYSQLSERVER")
 	if serverDSN == "" {
-		absPath, _ := filepath.Abs("../../.env")
+		absPath, err := filepath.Abs("../../.env")
+		if err != nil {
+			log.Fatalf("MYSQLSERVER not set and failed to resolve absolute path for .env file: %v", err)
+		}
 		log.Fatalf("MYSQLSERVER not set in .env file %s", absPath)
 	}
 

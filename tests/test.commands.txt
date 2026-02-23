@@ -8,7 +8,12 @@ Test command for server with coverage:
     go test -v ./tests/server_tests/... "-coverpkg=web-app/pkg/server..." -coverprofile=server_coverage.out
 
 Combined command:
-    go test -v ./tests ./tests/internal_tests "-coverpkg=web-app/internal/..." -coverprofile=coverage.out
+    go test -v ./tests/... "-coverpkg=web-app/pkg/server...,web-app/internal/..." -coverprofile=coverage_all.out
 
 Visual tool coverage:
+    go tool cover -html="coverage_all"
     go tool cover -html="coverage"
+    go tool cover -html="server_coverage"
+
+Final coverage
+    go tool cover -func coverage_all
