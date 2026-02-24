@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css?v=20260224">
     <title>Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="login-container">
+        <p class="back-link"><a href="/">← Back to Home</a></p>
         <h1>Create an Account</h1>
         <form id="register-form">
             <div class="input-group">
@@ -23,7 +25,18 @@
             </div>
             <div class="input-group">
                 <label for="password">Password:</label>
-                <input type="password" id="password" required>
+                <p class="password-rules-title">Паролата трябва да съдържа:</p>
+                <ul class="password-rules">
+                    <li>Минимум 8 символа</li>
+                    <li>Поне една главна буква</li>
+                    <li>Поне една малка буква</li>
+                    <li>Поне една цифра</li>
+                    <li>Поне един специален символ (напр. !@#$%^&*)</li>
+                </ul>
+                <div style="position: relative;">
+                    <input type="password" id="password" required style="width: 100%; box-sizing: border-box; padding-right: 40px;">
+                    <i class="fa-solid fa-eye" id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #555;"></i>
+                </div>
             </div>
 
             <div class="captcha-container">
@@ -39,6 +52,6 @@
         <p>Already have an account? <a href="/login">Login here</a></p>
     </div>
 
-    <script src="/static/script.js"></script>
+    <script src="/static/script.js?v=20260224"></script>
 </body>
 </html>

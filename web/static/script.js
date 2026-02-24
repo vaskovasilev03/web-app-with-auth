@@ -17,7 +17,32 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         })
         .catch(err => console.error("Session check failed:", err));
+
+    const togglePassword = document.getElementById('togglePassword');
+    if (togglePassword) {
+        togglePassword.addEventListener('click', toggleRegisterPassword);
+    }
+
 });
+
+function toggleRegisterPassword() {
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    if (!togglePassword || !passwordInput) {
+        return;
+    }
+
+    const isPassword = passwordInput.getAttribute('type') === 'password';
+    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+    if (isPassword) {
+        togglePassword.classList.remove('fa-eye');
+        togglePassword.classList.add('fa-eye-slash');
+    } else {
+        togglePassword.classList.remove('fa-eye-slash');
+        togglePassword.classList.add('fa-eye');
+    }
+}
 
 function logout() {
     fetch("/logout", { method: "POST" }).then(() => {
