@@ -1,12 +1,15 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"web-app/internal/models"
 
 	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var ErrEmailAlreadyRegistered = errors.New("email already registered")
 
 func (db *DB) CreateUser(user *models.User) (int64, error) {
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -18,7 +21,7 @@ func (db *DB) CreateUser(user *models.User) (int64, error) {
 	result, err := db.Exec(query, user.FirstName, user.LastName, user.Email, string(hashedPass))
 	if err != nil {
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
-			return 0, fmt.Errorf("email already registered")
+			return 0, fmt.Errorf("%w", ErrEmailAlreadyRegistered)
 		}
 		return 0, err
 	}

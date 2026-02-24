@@ -2,10 +2,12 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
+	"web-app/internal/database"
 	"web-app/internal/models"
 	"web-app/internal/utils"
 	"web-app/internal/validator"
@@ -61,6 +63,10 @@ func (app *App) HandleRegister(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := app.DB.CreateUser(&data.User)
 	if err != nil {
+		if errors.Is(err, database.ErrEmailAlreadyRegistered) {
+			http.Error(w, "Email already registered", http.StatusConflict)
+			return
+		}
 		log.Printf("DEBUG: CreateUser Error: %v", err)
 		http.Error(w, "Could not create user", http.StatusInternalServerError)
 		return
