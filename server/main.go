@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -23,18 +22,15 @@ func main() {
 	dsn := os.Getenv("DB_DSN")
 	port := os.Getenv("PORT")
 
-	db, err := sql.Open("mysql", dsn)
+	db, err := database.InitDB("mysql", dsn)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalf("Failed to initialize database: %v", err)
 	}
+	log.Println("Database connection established")
+
 	defer db.Close()
 
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Failed to ping database: %v", err)
-	}
-	log.Println("Connected to database successfully.")
-
-	customDB := &database.DB{DB: db}
+	customDB := &database.DB{DB: db.DB}
 	app := server.NewApp(customDB)
 
 	go func() {
