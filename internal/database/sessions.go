@@ -1,7 +1,7 @@
 package database
 
 import (
-	"time"
+	"log"
 	"web-app/internal/models"
 )
 
@@ -25,20 +25,30 @@ func (db *DB) GetUserIDByToken(token string) (int, error) {
 
 func (db *DB) GetValidSessionToken(userID int) (string, error) {
 	var token string
-	query := "SELECT session_token FROM sessions WHERE user_id = ? AND expires_at > ?"
-	err := db.QueryRow(query, userID, time.Now()).Scan(&token)
+	query := "SELECT session_token FROM sessions WHERE user_id = ? AND expires_at > NOW()"
+	err := db.QueryRow(query, userID).Scan(&token)
 	return token, err
 }
 
-func (db *DB) UpdateSessionExpiry(token string, expiry time.Time) error {
-	_, err := db.Exec("UPDATE sessions SET expires_at = ? WHERE session_token = ?", expiry, token)
+func (db *DB) UpdateSessionExpiry(token string) error {
+	_, err := db.Exec("UPDATE sessions SET expires_at = DATE_ADD(NOW(), INTERVAL 24 HOUR) WHERE session_token = ?", token)
 	return err
 }
 
-func (db *DB) CleanupExpired(currentTime time.Time) error {
-	if _, err := db.Exec("DELETE FROM sessions WHERE expires_at < ?", currentTime); err != nil {
+func (db *DB) CleanupExpired() error {
+	sessionsResult, err := db.Exec("DELETE FROM sessions WHERE expires_at < NOW()")
+	if err != nil {
 		return err
 	}
-	_, err := db.Exec("DELETE FROM captchas WHERE expires_at < ?", currentTime)
-	return err
+
+	captchasResult, err := db.Exec("DELETE FROM captchas WHERE expires_at < NOW()")
+	if err != nil {
+		return err
+	}
+
+	sessionsDeleted, _ := sessionsResult.RowsAffected()
+	captchasDeleted, _ := captchasResult.RowsAffected()
+	log.Printf("CleanupExpired completed: sessions=%d, captchas=%d", sessionsDeleted, captchasDeleted)
+
+	return nil
 }

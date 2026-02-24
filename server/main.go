@@ -34,12 +34,22 @@ func main() {
 	app := server.NewApp(customDB)
 
 	go func() {
+		log.Println("Started session cleanup goroutine in the background")
+
+		runCleanup := func() {
+			if err := customDB.CleanupExpired(); err != nil {
+				log.Printf("Error cleaning up expired rows: %v", err)
+				return
+			}
+			log.Println("Expired sessions/captchas cleanup completed")
+		}
+
+		runCleanup()
+
 		ticker := time.NewTicker(1 * time.Hour)
 		defer ticker.Stop()
 		for range ticker.C {
-			if err := customDB.CleanupExpired(time.Now()); err != nil {
-				log.Printf("Error cleaning up expired rows: %v", err)
-			}
+			runCleanup()
 		}
 	}()
 

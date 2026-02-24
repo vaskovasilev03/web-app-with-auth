@@ -128,7 +128,7 @@ func (app *App) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	expiresAt := time.Now().Add(24 * time.Hour)
 
 	if err == nil && token != "" {
-		if err := app.DB.UpdateSessionExpiry(token, expiresAt); err != nil {
+		if err := app.DB.UpdateSessionExpiry(token); err != nil {
 			log.Printf("DEBUG: UpdateSessionExpiry Error: %v", err)
 			http.Error(w, "Failed to update session", http.StatusInternalServerError)
 			return
